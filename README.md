@@ -44,7 +44,7 @@ python app.py
 
  
 ## Testing
-This project includes unit tests written using Python's unittest module. The tests verify functionality of adding and deleting task, and of setting tasks complete/incomplete.
+This project includes unit tests written using Python's unittest module. The tests verify functionality of adding and deleting task, setting tasks complete/incomplete and sorting tasks.
 
 Run the tests:
 ```
