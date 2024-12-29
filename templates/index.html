@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const timestamps = document.querySelectorAll('.timestamp');
+            timestamps.forEach(timestamp => {
+                const utcDate = new Date(timestamp.textContent.trim());
+                timestamp.textContent = utcDate.toLocaleString(); // Convert UTC time to local time
+            });
+        });
+    </script>
+</head>
+<body class="container my-4">
+    <h1 class="text-center mb-4">Task Manager</h1>
+    <form action="/add" method="POST" class="input-group mb-3">
+        <input type="text" name="task" class="form-control" placeholder="Enter a new task" required>
+        <button type="submit" class="btn btn-primary">Add Task</button>
+    </form>
+
+    <!-- Incomplete Tasks -->
+    <div class="card mb-3">
+        <div class="card-header bg-warning text-dark">
+            <h2>Incomplete Tasks</h2>
+            <form method="GET" action="/" class="mt-2 input-group">
+                <input type="hidden" name="sort_completed" value="{{ request.args.get('sort_completed', 'created_at') }}">
+                <label for="sort_incomplete" class="input-group-text">Sort by:</label>
+                <select name="sort_incomplete" id="sort_incomplete" class="form-select" onchange="this.form.submit()">
+                    <option value="created_at" {% if request.args.get('sort_incomplete') == 'created_at' %}selected{% endif %}>Created Time</option>
+                    <option value="content" {% if request.args.get('sort_incomplete') == 'content' %}selected{% endif %}>Alphabetical</option>
+                </select>
+            </form>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for task in tasks %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                    <strong>{{ loop.index }}. Task: {{ task.content }}</strong> <br>
+                    <small class="text-muted">Created at: {{ task.created_at }}</small> <br>
+                </span>
+                <div>
+                    <form action="{{ url_for('toggle_task', task_id=task['id']) }}" method="POST" class="d-inline">
+                        <input type="checkbox" class="form-check-input me-2" name="completed" {% if task.completed %}checked{% endif %} onchange="this.form.submit()">
+                    </form>
+                    <form action="/delete/{{ task.id }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Completed Tasks -->
+    <div class="card mb-3">
+        <div class="card-header bg-success text-white">
+            <h2>Completed Tasks</h2>
+            <form method="GET" action="/" class="mt-2 input-group">
+                <input type="hidden" name="sort_incomplete" value="{{ request.args.get('sort_incomplete', 'created_at') }}">
+                <label for="sort_completed" class="input-group-text">Sort by:</label>
+                <select name="sort_completed" id="sort_completed" class="form-select" onchange="this.form.submit()">
+                    <option value="created_at" {% if request.args.get('sort_completed') == 'created_at' %}selected{% endif %}>Created Time</option>
+                    <option value="content" {% if request.args.get('sort_completed') == 'content' %}selected{% endif %}>Alphabetical</option>
+                    <option value="completed_at" {% if request.args.get('sort_completed') == 'completed_at' %}selected{% endif %}>Completed Time</option>
+                </select>
+            </form>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for task in completed_tasks %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class>
+                    <strong>{{ loop.index }}. Task: {{ task.content }}</strong> <br>
+                    <small class="text-muted">Created at: {{ task.created_at }}</small> <br>
+                    <small class="text-muted">Completed at: {{ task.completed_at }}</small>
+                </span>
+                <div>
+                    <form action="{{ url_for('toggle_task', task_id=task['id']) }}" method="POST" class="d-inline">
+                        <input type="checkbox" class="form-check-input me-2" name="completed" {% if task.completed %}checked{% endif %} onchange="this.form.submit()">
+                    </form>
+                    <form action="/delete/{{ task.id }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
